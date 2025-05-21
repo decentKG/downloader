@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTake Muzik</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 20px 40px 180px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .top-bar {
+      position: fixed;
+      top: 12px;
+      right: 18px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      z-index: 1000;
+      background: transparent;
+    }
+    .top-videos-btn, .top-search-btn {
+      background: #232323;
+      color: #00d8ff;
+      border: 2px solid #00d8ff;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 10px 18px;
+      cursor: pointer;
+      margin-right: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .top-videos-btn:hover, .top-search-btn:hover {
+      background: #00d8ff;
+      color: #181818;
+    }
+    .theme-toggle {
+      background: #232323;
+      color: #00d8ff;
+      border: 2px solid #00d8ff;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 10px 18px;
+      cursor: pointer;
+      margin-right: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .theme-toggle:hover {
+      background: #00d8ff;
+      color: #181818;
+    }
+    .search-bar-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .search-bar-top input {
+      padding: 10px 16px;
+      font-size: 1rem;
+      border: 1.5px solid #00d8ff;
+      border-radius: 8px;
+      background: #222;
+      color: #eee;
+      transition: background-color 0.3s, border 0.3s;
+      width: 220px;
+    }
+    .search-bar-top input:focus {
+      background: #333;
+      outline: 2px solid #00d8ff;
+      border: 1.5px solid #00b3ff;
+    }
+    .search-bar-top button {
+      background: linear-gradient(135deg, #00d8ff, #006caa);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 10px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px #00d8ff80;
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+    .search-bar-top button:hover {
+      background: linear-gradient(135deg, #00b3ff, #005a87);
+    }
+    .language-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #232323;
+      padding: 8px 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #00d8ff33;
+    }
+    .language-selector label {
+      color: #00d8ff;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .language-selector select {
+      background: #222;
+      color: #eee;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .language-selector select:hover {
+      background: #333;
+    }
+    h1 {
+      font-weight: 700;
+      color: #00d8ff;
+      margin-top: 70px;
+      margin-bottom: 30px;
+      user-select: none;
+      animation: bounce 2s ease-in-out infinite;
+      text-shadow: 0 0 10px #00d8ffaa;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    .search-container {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+    #searchQuery {
+      flex-grow: 1;
+      padding: 14px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      outline-offset: 2px;
+      outline-color: #00d8ff;
+      background: #222;
+      color: #eee;
+      transition: background-color 0.3s ease;
+    }
+    #searchQuery::placeholder { color: #777; }
+    #searchQuery:focus { background: #333; }
+    button {
+      background: linear-gradient(135deg, #00d8ff, #006caa);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px #00d8ff80;
+      transition: background 0.3s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    button:hover { background: linear-gradient(135deg, #00b3ff, #005a87); }
+    #searchResults {
+      width: 100%;
+      max-width: 700px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+      gap: 20px;
+    }
+    .video-result {
+      background: #1f1f1f;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px #000000aa;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+      user-select: none;
+    }
+    .video-result:hover { box-shadow: 0 6px 20px #00d8ffbb; }
+    .video-result img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-bottom: 1px solid #333;
+    }
+    .video-content {
+      padding: 16px 18px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .video-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #cfd8dc;
+      margin: 0 0 12px;
+      min-height: 48px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .format-select {
+      margin-bottom: 14px;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #222;
+      color: #eee;
+      width: 100%;
+      max-width: 140px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .format-select:hover, .format-select:focus { background: #333; outline: none; }
+    .btn-download {
+      background: #00d8ff;
+      color: #000;
+      font-weight: 700;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px #00d8ffaa;
+      transition: background 0.3s ease;
+      width: 100%;
+      user-select: none;
+    }
+    .btn-download:hover { background: #00b3ff; }
+    .progress-container {
+      margin-top: 12px;
+      width: 100%;
+      height: 16px;
+      background: #333;
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+      box-shadow: inset 0 0 6px #000000aa;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00d8ff, #006caa);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .message {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #80deea;
+      min-height: 18px;
+      font-style: italic;
+    }
+    .download-link {
+      display: none;
+      margin-top: 12px;
+      font-weight: 600;
+      color: #00e5ff;
+      text-decoration: none;
+      user-select: text;
+      word-break: break-word;
+      font-size: 14px;
+    }
+    .download-link:hover { text-decoration: underline; }
+    #downloadQueue {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #121212;
+      border-top: 4px solid #00d8ff;
+      padding: 12px 32px;
+      box-sizing: border-box;
+      color: #00d8ff;
+      font-weight: 700;
+      font-family: 'Consolas', monospace;
+      z-index: 9999;
+      box-shadow: 0 -2px 10px #00d8ff44;
+    }
+    #downloadQueue h2 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+      user-select: none;
+    }
+    .queue-item {
+      margin-bottom: 10px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .queue-progress-container {
+      flex-grow: 1;
+      height: 14px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: inset 0 0 4px #000000bb;
+    }
+    .queue-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00d8ff, #004f7a);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .queue-link {
+      color: #00e5ff;
+      text-decoration: none;
+      font-weight: 700;
+      white-space: nowrap;
+      user-select: text;
+    }
+    .queue-link:hover { text-decoration: underline; }
+    @media (max-width: 480px) {
+      body { padding: 16px 16px 180px; }
+      .search-container { flex-direction: column; gap: 12px; }
+      button { width: 100%; }
+      #searchResults { grid-template-columns: 1fr; }
+    }
+    .genre-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 36px;
+      margin-top: -18px;
+      padding: 8px 0 4px 0;
+    }
+    .genre-pill {
+      background: #181f2a;
+      color: #00d8ff;
+      border: 2px solid #00d8ff;
+      border-radius: 24px;
+      padding: 8px 26px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      outline: none;
+      box-shadow: 0 2px 8px #00d8ff22;
+    }
+    .genre-pill:hover, .genre-pill.active {
+      background: #00d8ff;
+      color: #181f2a;
+      border-color: #00d8ff;
+    }
+    .explore-hr {
+      border: none;
+      height: 2px;
+      width: 98vw;
+      min-width: 200px;
+      margin: -18px 0 32px 0;
+      background: linear-gradient(90deg, #00d8ff 0%, #222 100%);
+      opacity: 0.7;
+      border-radius: 2px;
+      display: block;
+    }
+    .explore-hr-glitch {
+      border: none;
+      height: 2.5px;
+      width: 98vw;
+      min-width: 200px;
+      margin: 0 0 18px 0;
+      background: linear-gradient(90deg, #00d8ff 0%, #222 100%);
+      position: relative;
+      display: block;
+      box-shadow: 0 0 2px #00d8ff, 0 0 4px #ff00c8, 0 0 6px #00ffea;
+      animation: glitch-hr 1.2s infinite linear alternate;
+    }
+    @keyframes glitch-hr {
+      0% { box-shadow: 0 0 2px #00d8ff, 0 0 4px #ff00c8, 0 0 6px #00ffea; }
+      20% { box-shadow: 2px 0 3px #ff00c8, -2px 0 4px #00ffea, 0 0 6px #00d8ff; }
+      40% { box-shadow: -2px 0 4px #00ffea, 2px 0 3px #00d8ff, 0 0 6px #ff00c8; }
+      60% { box-shadow: 0 0 4px #00d8ff, 0 0 6px #ff00c8, 0 0 8px #00ffea; }
+      80% { box-shadow: 2px 0 3px #00ffea, -2px 0 4px #00d8ff, 0 0 6px #ff00c8; }
+      100% { box-shadow: 0 0 2px #00d8ff, 0 0 4px #ff00c8, 0 0 6px #00ffea; }
+    }
+    .glitch-trendings {
+      color: #00d8ff;
+      text-align: center;
+      margin: 0 0 24px 0;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.1em;
+      flex-wrap: wrap;
+    }
+    .glitch-letter {
+      display: inline-block;
+      position: relative;
+      animation: glitchLetter 2s infinite alternate cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    @keyframes glitchLetter {
+      0% { transform: translateY(0); }
+      20% { transform: translateY(-2px); }
+      40% { transform: translateY(2px); }
+      60% { transform: translateY(-2px); }
+      80% { transform: translateY(2px); }
+      100% { transform: translateY(0); }
+    }
+    .trending-videos-grid {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 40px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      justify-content: center;
+    }
+    .trending-video-card {
+      background: #1f1f1f;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px #00d8ff22;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .trending-video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 24px #00d8ff55;
+    }
+    .trending-video-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-bottom: 1px solid #333;
+    }
+    .trending-video-content {
+      padding: 14px 16px 12px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .trending-video-title {
+      color: #cfd8dc;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      min-height: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .trending-video-views {
+      color: #b0b0b0;
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .trending-video-genre {
+      color: #00d8ff;
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button class="top-videos-btn" onclick="scrollToTrending()">Top Videos</button>
+    <button class="top-search-btn" onclick="scrollToSearch()">Top Search</button>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggleBtn">Light Mode</button>
+    <div class="search-bar-top">
+      <input type="text" id="searchQuery" placeholder="Search YouTube videos..." aria-label="Search YouTube videos" onkeydown="if(event.key === 'Enter') searchVideos()" />
+    </div>
+    <div class="language-selector">
+      <select id="languageSelect" onchange="updateLanguage()">
+        <option value="en">English</option>
+        <option value="sn">Shona</option>
+        <option value="nd">Ndebele</option>
+      </select>
+    </div>
+  </div>
+  <h1 id="mainTitle">YouTake Downloader</h1>
+  <hr class="explore-hr-glitch" />
+  <h2 style="color:#00d8ff; text-align:center; margin-top:0; margin-bottom:32px; letter-spacing:2px; font-weight:800;">🎵 EXPLORE</h2>
+  <hr class="explore-hr" />
+  <div class="genre-bar">
+    <button class="genre-pill" data-genre="Amapiano">Amapiano</button>
+    <button class="genre-pill" data-genre="Zimdancehall">Zimdancehall</button>
+    <button class="genre-pill" data-genre="Sungura">Sungura</button>
+    <button class="genre-pill" data-genre="Zim Gospels">Zim Gospels</button>
+    <button class="genre-pill" data-genre="Hip Hop">Hip Hop</button>
+    <button class="genre-pill" data-genre="Afrobeats">Afrobeats</button>
+    <button class="genre-pill" data-genre="House">House</button>
+    <button class="genre-pill" data-genre="Jazz">Jazz</button>
+    <button class="genre-pill" data-genre="RnB">RnB</button>
+    <button class="genre-pill" data-genre="Reggae">Reggae</button>
+    <button class="genre-pill" data-genre="Gospel">Gospel</button>
+    <button class="genre-pill" data-genre="Pop">Pop</button>
+    <button class="genre-pill" data-genre="Rock">Rock</button>
+    <button class="genre-pill" data-genre="Kwaito">Kwaito</button>
+    <button class="genre-pill" data-genre="Traditional">Traditional</button>
+  </div>
+  <h3 class="glitch-trendings">
+    <span class="glitch-letter" style="animation-delay:0s;">🔥</span>
+    <span class="glitch-letter" style="animation-delay:0.05s;">Y</span>
+    <span class="glitch-letter" style="animation-delay:0.10s;">o</span>
+    <span class="glitch-letter" style="animation-delay:0.15s;">u</span>
+    <span class="glitch-letter" style="animation-delay:0.20s;">r</span>
+    <span style="margin:0 0.2em;"></span>
+    <span class="glitch-letter" style="animation-delay:0.25s;">T</span>
+    <span class="glitch-letter" style="animation-delay:0.30s;">r</span>
+    <span class="glitch-letter" style="animation-delay:0.35s;">e</span>
+    <span class="glitch-letter" style="animation-delay:0.40s;">n</span>
+    <span class="glitch-letter" style="animation-delay:0.45s;">d</span>
+    <span class="glitch-letter" style="animation-delay:0.50s;">i</span>
+    <span class="glitch-letter" style="animation-delay:0.55s;">n</span>
+    <span class="glitch-letter" style="animation-delay:0.60s;">g</span>
+    <span class="glitch-letter" style="animation-delay:0.65s;">s</span>
+  </h3>
+  <div id="searchResults" role="region" aria-live="polite" aria-label="Search results"></div>
+  <div class="trending-videos-grid" id="globalTrendingVideos"></div>
+  <section id="downloadQueue" aria-label="Download queue" style="display:none;">
+    <h2>Download Queue</h2>
+    <div id="queueItems"></div>
+  </section>
+  <script>
+    const downloadQueue = {};
+    let selectedGenre = '';
+
+    function sanitizeId(text) { return text.replace(/\W/g, '_').toLowerCase(); }
+
+    // Add click event to genre pills
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.genre-pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+          // Remove active from all
+          document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
+          // Set active
+          this.classList.add('active');
+          selectedGenre = this.getAttribute('data-genre');
+          genreSearch();
+        });
+      });
+    });
+
+    function genreSearch() {
+      const queryInput = document.getElementById('searchQuery');
+      const query = queryInput ? queryInput.value.trim() : '';
+      let searchTerm = selectedGenre;
+      if (query) {
+        searchTerm = `${query} ${selectedGenre}`;
+      }
+      if (!searchTerm) return;
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.innerHTML = `<p style="font-style: italic; color:#666;">Loading...</p>`;
+      fetch('/search', {
+        method: 'POST',
+        body: new URLSearchParams({ 'query': searchTerm }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          displaySearchResults(data.results);
+        } else {
+          resultsContainer.innerHTML = `<p style=\"color:#ff6b6b;\">❌ ${data.message}</p>`;
+        }
+      })
+      .catch(() => {
+        resultsContainer.innerHTML = `<p style=\"color:#ff6b6b;\">❌ Error loading results</p>`;
+      });
+    }
+
+    // Update searchVideos to combine with selected genre
+    async function searchVideos() {
+      const queryInput = document.getElementById('searchQuery');
+      const query = queryInput.value.trim();
+      let searchTerm = query;
+      if (selectedGenre) {
+        searchTerm = `${query} ${selectedGenre}`.trim();
+      }
+      if (!searchTerm) { alert('Please enter a search term or select a genre'); queryInput.focus(); return; }
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.innerHTML = `<p style="font-style: italic; color:#666;">Loading...</p>`;
+      try {
+        const response = await fetch('/search', {
+          method: 'POST',
+          body: new URLSearchParams({ 'query': searchTerm }),
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+          displaySearchResults(data.results);
+        } else {
+          resultsContainer.innerHTML = `<p style=\"color:#ff6b6b;\">❌ ${data.message}</p>`;
+        }
+      } catch (err) {
+        resultsContainer.innerHTML = `<p style=\"color:#ff6b6b;\">❌ Error loading results</p>`;
+        console.error(err);
+      }
+    }
+
+    function displaySearchResults(results) {
+      const container = document.getElementById('searchResults');
+      container.innerHTML = '';
+      if (results.length === 0) {
+        container.innerHTML = `<p style=\"font-style: italic; color:#999;\">No videos found.</p>`;
+        return;
+      }
+      results.forEach((video, index) => {
+        const videoId = sanitizeId(video.title) + '-' + index;
+        const div = document.createElement('article');
+        div.className = 'video-result';
+        div.setAttribute('tabindex', '0');
+        div.setAttribute('aria-label', `Video titled ${video.title}`);
+        div.innerHTML = `
+          <img src="${video.thumbnail}" alt="Thumbnail for ${video.title}" loading="lazy" />
+          <div class="video-content">
+            <h3 class="video-title">${video.title}</h3>
+            <label for="format-${videoId}" style="margin-bottom:6px;display:block;">Choose format:</label>
+            <select id="format-${videoId}" class="format-select" aria-label="Select format for ${video.title}">
+              <option value="video">Video (MP4)</option>
+              <option value="audio">Audio (MP3)</option>
+            </select>
+            <label for="quality-${videoId}" style="margin-bottom:6px;display:block;">Quality:</label>
+            <select id="quality-${videoId}" class="format-select" aria-label="Select quality for ${video.title}">
+              <option value="best">Best</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+              <option value="audio">Audio Only</option>
+            </select>
+            <button class="btn-download" onclick="startDownload('${video.url}', '${videoId}', \`${video.title.replace(/`/g, '')}\`)">Download</button>
+            <div class="progress-container" id="progress-container-${videoId}">
+              <div class="progress-bar" id="progress-bar-${videoId}"></div>
+            </div>
+            <div class="message" id="message-${videoId}" aria-live="polite" aria-atomic="true"></div>
+            <a class="download-link" id="view-button-${videoId}" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">⬇️ View Download</a>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+    function startDownload(url, videoId, title) {
+      const formatSelect = document.getElementById(`format-${videoId}`);
+      const format = formatSelect.value;
+      const qualitySelect = document.getElementById(`quality-${videoId}`);
+      const quality = qualitySelect.value;
+      const message = document.getElementById(`message-${videoId}`);
+      const bar = document.getElementById(`progress-bar-${videoId}`);
+      const container = document.getElementById(`progress-container-${videoId}`);
+      const viewBtn = document.getElementById(`view-button-${videoId}`);
+      message.textContent = 'Starting download...';
+      container.style.display = "block";
+      bar.style.width = "0%";
+      viewBtn.style.display = "none";
+      addToQueue(title, url);
+      fetch('/download', {
+        method: 'POST',
+        body: new URLSearchParams({ 'url': url, 'format': format, 'quality': quality }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }).then(() => {
+        simulateProgress(videoId, message, bar, viewBtn, title);
+      }).catch(() => {
+        message.textContent = 'Failed to start download';
+      });
+    }
+    function simulateProgress(videoId, message, bar, viewBtn, title) {
+      let progress = 0;
+      const interval = setInterval(() => {
+        if (progress < 98) {
+          progress += Math.random() * 5;
+          bar.style.width = Math.min(progress, 98) + "%";
+          updateQueueProgress(title, progress);
+        }
+      }, 400);
+      const checkInterval = setInterval(() => {
+        fetch('/check-completed')
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'finished') {
+              clearInterval(interval);
+              clearInterval(checkInterval);
+              bar.style.width = "100%";
+              message.textContent = 'Download complete!';
+              viewBtn.href = data.path;
+              viewBtn.style.display = "inline-block";
+              updateQueueProgress(title, 100, data.path);
+            }
+          })
+          .catch(() => {});
+      }, 2500);
+    }
+    function addToQueue(title, url) {
+      const queueDiv = document.getElementById('downloadQueue');
+      const queueItems = document.getElementById('queueItems');
+      queueDiv.style.display = "block";
+      const id = sanitizeId(title);
+      if (downloadQueue[id]) return;
+      const item = document.createElement('div');
+      item.className = 'queue-item';
+      item.id = `queue-item-${id}`;
+      item.setAttribute('aria-label', `Downloading ${title}`);
+      item.innerHTML = `
+        <div>${title}</div>
+        <div class="queue-progress-container">
+          <div class="queue-progress-bar" id="queue-progress-${id}"></div>
+        </div>
+        <a href="#" class="queue-link" id="queue-link-${id}" target="_blank" rel="noopener noreferrer" style="display:none;">⬇️ Download</a>
+      `;
+      queueItems.appendChild(item);
+      downloadQueue[id] = { progress: 0, elementId: id, url: url };
+    }
+    function updateQueueProgress(title, percent, downloadUrl = null) {
+      const id = sanitizeId(title);
+      const bar = document.getElementById(`queue-progress-${id}`);
+      const link = document.getElementById(`queue-link-${id}`);
+      if (!bar) return;
+      bar.style.width = percent + "%";
+      if (percent >= 100 && downloadUrl) {
+        link.href = downloadUrl;
+        link.style.display = "inline";
+      }
+    }
+    // Language translations
+    const translations = {
+      en: {
+        title: "YouTube Search & Downloader",
+        searchPlaceholder: "Search YouTube videos...",
+        searchButton: "Search"
+      },
+      sn: {
+        title: "YouTube Kutsvaga & Kutorera",
+        searchPlaceholder: "Tsvaga mavhidhiyo eYouTube...",
+        searchButton: "Tsvaga"
+      },
+      nd: {
+        title: "YouTube Usesho & Ukulanda",
+        searchPlaceholder: "Sesha amavidiyo e-YouTube...",
+        searchButton: "Sesha"
+      }
+    };
+    function updateLanguage() {
+      const lang = document.getElementById('languageSelect').value;
+      const t = translations[lang] || translations.en;
+      document.getElementById('mainTitle').textContent = t.title;
+      document.getElementById('searchQuery').placeholder = t.searchPlaceholder;
+    }
+    // Set initial language on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateLanguage();
+    });
+    function scrollToTrending() {
+      const trendingSection = document.querySelector('.trending-section');
+      if (trendingSection) {
+        trendingSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    function scrollToSearch() {
+      const searchInput = document.getElementById('searchQuery');
+      if (searchInput) {
+        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        searchInput.focus();
+      }
+    }
+    function toggleTheme() {
+      const body = document.body;
+      const btn = document.getElementById('themeToggleBtn');
+      if (body.classList.contains('light-theme')) {
+        body.classList.remove('light-theme');
+        btn.textContent = 'Light Mode';
+      } else {
+        body.classList.add('light-theme');
+        btn.textContent = 'Dark Mode';
+      }
+    }
+    // Light theme styles
+    const style = document.createElement('style');
+    style.innerHTML = `
+      body.light-theme {
+        background: #f6f8fa !important;
+        color: #222 !important;
+      }
+      body.light-theme h1, body.light-theme .trending-title {
+        color: #0077b6 !important;
+        text-shadow: 0 0 10px #b6eaff;
+      }
+      body.light-theme .search-bar-top input, body.light-theme .language-selector, body.light-theme .top-videos-btn, body.light-theme .top-search-btn, body.light-theme .theme-toggle {
+        background: #fff !important;
+        color: #0077b6 !important;
+        border-color: #0077b6 !important;
+      }
+      body.light-theme .search-bar-top input {
+        color: #222 !important;
+      }
+      body.light-theme .search-bar-top input:focus {
+        background: #e0f7fa !important;
+        outline: 2px solid #0077b6 !important;
+        border: 1.5px solid #0096c7 !important;
+      }
+      body.light-theme .search-bar-top button {
+        background: linear-gradient(135deg, #00b4d8, #0077b6) !important;
+        color: #fff !important;
+      }
+      body.light-theme .search-bar-top button:hover {
+        background: linear-gradient(135deg, #0096c7, #023e8a) !important;
+      }
+    `;
+    document.head.appendChild(style);
+    // Load global trending videos under 'Your Trendings'
+    function loadGlobalTrendingVideos() {
+      const container = document.getElementById('globalTrendingVideos');
+      container.innerHTML = '<p style="color:#666; text-align:center;">Loading trending videos...</p>';
+      fetch('/trending')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.results && data.results.length > 0) {
+            container.innerHTML = '';
+            data.results.forEach(video => {
+              const card = document.createElement('div');
+              card.className = 'trending-video-card';
+              card.onclick = () => window.open(video.url, '_blank');
+              card.innerHTML = `
+                <img class="trending-video-thumb" src="${video.thumbnail}" alt="${video.title}" loading="lazy" />
+                <div class="trending-video-content">
+                  <div class="trending-video-title">${video.title}</div>
+                  <div class="trending-video-views">${video.views ? video.views.toLocaleString() + ' views' : ''}</div>
+                  <div class="trending-video-genre">${video.genre || 'Music'}</div>
+                </div>
+              `;
+              container.appendChild(card);
+            });
+          } else {
+            container.innerHTML = '<p style="color:#999; text-align:center;">No trending videos found.</p>';
+          }
+        })
+        .catch(() => {
+          container.innerHTML = '<p style="color:#ff6b6b; text-align:center;">❌ Error loading trending videos.</p>';
+        });
+    }
+    document.addEventListener('DOMContentLoaded', loadGlobalTrendingVideos);
+  </script>
+</body>
+</html>
